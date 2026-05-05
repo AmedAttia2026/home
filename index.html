@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة المساحات الهندسية | الحفظ التلقائي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --app-bg: #F8FAFC; --card-bg: #FFFFFF; --text-main: #334155; --text-muted: #64748B; --border-color: #E2E8F0;
+            --primary: #0F766E; --primary-light: #14B8A6; --primary-gradient: linear-gradient(135deg, #0F766E, #06B6D4);
+            --blue-main: #0EA5E9; --blue-light: #E0F2FE; --rose-main: #F43F5E; --rose-light: #FFE4E6;
+            --purple-main: #8B5CF6; --purple-light: #EDE9FE;
+            --shadow-sm: 0 2px 4px rgba(148, 163, 184, 0.05); --shadow-md: 0 10px 25px -5px rgba(148, 163, 184, 0.1);
+            --radius-md: 12px; --radius-lg: 20px;
+        }
+
+        body { font-family: 'Cairo', sans-serif; background-color: var(--app-bg); color: var(--text-main); margin: 0; padding: 20px; line-height: 1.6; }
+        .app-container { max-width: 950px; margin: 0 auto; padding-bottom: 120px; }
+        
+        .app-header { background: var(--primary-gradient); color: white; padding: 40px 20px; border-radius: var(--radius-lg); text-align: center; margin-bottom: 40px; box-shadow: var(--shadow-md); position: relative;}
+        .app-header h1 { margin: 0; font-weight: 800; font-size: 32px; }
+        .app-header p { margin: 10px 0 0 0; color: rgba(255,255,255,0.85); font-size: 16px; }
+        
+        #save-status { position: absolute; top: 15px; left: 20px; background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+
+        .room-card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 25px; margin-bottom: 30px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); position: relative; overflow: hidden; }
+        .room-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--blue-main), var(--primary)); }
+        
+        .room-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 20px; margin-bottom: 25px; }
+        .room-title-group { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
+        .room-icon { width: 50px; height: 50px; background: #F1F5F9; color: var(--primary); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .room-name-input { font-family: 'Cairo', sans-serif; font-size: 22px; font-weight: 800; border: none; background: transparent; padding: 5px 10px; width: 60%; color: var(--text-main); border-radius: 8px; transition: 0.3s; }
+        .room-name-input:focus { background: var(--app-bg); outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .delete-btn { background: transparent; color: #94A3B8; border: 1px solid #E2E8F0; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-family: 'Cairo'; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .delete-btn:hover { background: var(--rose-light); color: var(--rose-main); border-color: var(--rose-light); }
+
+        .sub-section { border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .walls-section { background: #FAFAFA; border: 1px solid #F1F5F9; }
+        .walls-header { color: var(--blue-main); }
+        .deductions-section { background: #FFFDFD; border: 1px solid #FEF2F2; }
+        .deductions-header { color: var(--rose-main); }
+        .section-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+
+        .add-pill-btn { padding: 8px 16px; border-radius: 20px; cursor: pointer; font-family: 'Cairo'; font-size: 14px; font-weight: 700; border: none; transition: all 0.3s; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); }
+        .add-wall-btn { background: var(--blue-light); color: var(--blue-main); }
+        .add-wall-btn:hover { background: var(--blue-main); color: white; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2); }
+        .add-deduction-btn { background: var(--rose-light); color: var(--rose-main); }
+        .add-deduction-btn:hover { background: var(--rose-main); color: white; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(244, 63, 94, 0.2); }
+
+        .premium-input-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; background: white; padding: 10px 15px; border-radius: 14px; border: 1px solid #E2E8F0; margin-bottom: 10px; transition: 0.3s; }
+        .premium-input-row:hover { border-color: #CBD5E1; box-shadow: var(--shadow-sm); }
+        .p-input-wrapper { position: relative; display: flex; align-items: center; flex-grow: 1; min-width: 120px; }
+        .p-input-wrapper i { position: absolute; right: 12px; color: #94A3B8; font-size: 14px; pointer-events: none; }
+        .p-input-wrapper input, .p-input-wrapper select { width: 100%; box-sizing: border-box; padding: 10px 15px 10px 15px; padding-right: 40px; border: 1px solid #E2E8F0; border-radius: 10px; font-family: 'Cairo'; font-weight: 700; font-size: 15px; outline: none; transition: 0.3s; color: var(--text-main); background: #F8FAFC; }
+        .p-input-wrapper select { appearance: none; cursor: pointer; }
+        .p-input-wrapper input:focus, .p-input-wrapper select:focus { background: white; border-color: var(--blue-main); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
+        .deductions-section .p-input-wrapper input:focus, .deductions-section .p-input-wrapper select:focus { border-color: var(--rose-main); box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1); }
+        .p-multiply-icon { color: #CBD5E1; font-size: 12px; font-weight: bold; }
+        .remove-item-btn { width: 38px; height: 38px; border-radius: 10px; border: none; background: #F1F5F9; color: #94A3B8; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .remove-item-btn:hover { background: var(--rose-light); color: var(--rose-main); }
+
+        .room-summary-box { display: flex; justify-content: space-between; gap: 15px; margin-top: 25px; padding-top: 25px; border-top: 2px dashed #E2E8F0; flex-wrap: wrap; }
+        .summary-item { flex: 1; min-width: 120px; background: #F8FAFC; padding: 15px 20px; border-radius: 14px; text-align: center; border: 1px solid #E2E8F0; transition: all 0.3s; }
+        .summary-item:hover { box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+        .summary-item .s-label { font-size: 14px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 5px; }
+        .summary-item .s-value { font-size: 20px; font-weight: 800; color: var(--text-main); }
+        .summary-item.s-walls .s-value { color: var(--blue-main); }
+        .summary-item.s-deductions .s-value { color: var(--rose-main); }
+        .summary-item.s-net { background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: white; border: none; box-shadow: 0 4px 15px rgba(15, 118, 110, 0.25); }
+        .summary-item.s-net .s-label { color: rgba(255, 255, 255, 0.9); }
+        .summary-item.s-net .s-value { color: white; font-size: 24px; }
+
+        .ceilings-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 30px; margin-top: 40px; box-shadow: var(--shadow-md); }
+        .ceilings-header { color: var(--purple-main); font-size: 22px; font-weight: 800; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
+        .premium-ceiling-card { display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 15px 20px; margin-bottom: 15px; transition: all 0.3s ease; gap: 20px; flex-wrap: wrap; box-shadow: var(--shadow-sm); }
+        .premium-ceiling-card:hover { border-color: var(--purple-main); box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.1); transform: translateY(-2px); }
+        .c-info-group { display: flex; align-items: center; gap: 15px; min-width: 180px; }
+        .c-icon { width: 45px; height: 45px; background: var(--purple-light); color: var(--purple-main); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .c-text-wrapper { display: flex; flex-direction: column; }
+        .c-label { font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: -2px; }
+        .c-name-text { font-size: 16px; font-weight: 800; color: var(--text-main); }
+        .c-inputs-group { display: flex; align-items: center; gap: 10px; flex-grow: 1; justify-content: center; }
+        .c-result-box { background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: white; padding: 10px 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 90px; }
+        .c-result-label { font-size: 11px; opacity: 0.9; margin-bottom: -2px; }
+        .c-result-value { font-size: 20px; font-weight: 800; display: flex; align-items: baseline; gap: 4px; }
+        .c-result-value small { font-size: 14px; opacity: 0.8; font-weight: 600; }
+        .c-inputs-group input:focus { border-color: var(--purple-main); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15); }
+
+        .floating-footer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 900px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); color: white; padding: 15px 25px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.25); z-index: 1000; border: 1px solid rgba(255,255,255,0.1); }
+        .totals-group { display: flex; gap: 15px; }
+        .total-item { font-size: 16px; font-weight: 700; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px; }
+        .total-item span { font-size: 20px; font-weight: 800; }
+        .walls-total-highlight { color: #38BDF8; }
+        .ceilings-total-highlight { color: #C4B5FD; }
+        .add-room-btn { background: var(--blue-main); color: white; border: none; padding: 12px 25px; border-radius: 12px; font-family: 'Cairo'; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .add-room-btn:hover { background: #0284C7; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(14, 165, 233, 0.3); }
+        
+        #loading-screen { position: fixed; inset: 0; background: var(--app-bg); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+<div id="loading-screen">
+    <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
+    <div>جاري تحميل بياناتك...</div>
+</div>
+
+<div class="app-container">
+    <div class="app-header">
+        <div id="save-status"><i class="fas fa-cloud-upload-alt"></i> جاهز للحفظ</div>
+        <h1><i class="fas fa-drafting-compass"></i> نظام الحصر المعماري الشامل</h1>
+        <p>تصميم فاخر، قياسات دقيقة، وتحديث فوري في السحابة</p>
+    </div>
+
+    <datalist id="roomNames">
+        <option value="صالة الاستقبال">
+        <option value="غرفة نوم رئيسية">
+        <option value="غرفة أطفال">
+        <option value="مطبخ">
+        <option value="حمام">
+    </datalist>
+
+    <div id="roomsContainer"></div>
+
+    <div class="ceilings-container">
+        <div class="ceilings-header">
+            <i class="fas fa-layer-group"></i> لوحة مساحات الأسقف المستقلة
+        </div>
+        <div id="ceilingsWrapper"></div>
+    </div>
+</div>
+
+<div class="floating-footer">
+    <button class="add-room-btn" onclick="addRoom()"><i class="fas fa-plus-circle"></i> إضافة مساحة جديدة</button>
+    <div class="totals-group">
+        <div class="total-item walls-total-highlight">
+            <i class="fas fa-border-style"></i> إجمالي الصافي الكلي: <span id="grandTotalWalls">0.00</span> م²
+        </div>
+        <div class="total-item ceilings-total-highlight">
+            <i class="fas fa-square"></i> إجمالي الأسقف الكلي: <span id="grandTotalCeilings">0.00</span> م²
+        </div>
+    </div>
+</div>
+
+<script>
+    let roomCounter = 0;
+    let autoSaveTimeout = null;
+    let currentKey = "";
+
+    window.onload = async () => { 
+        const urlParams = new URLSearchParams(window.location.search);
+        currentKey = urlParams.get('key');
+
+        // إذا لم يكن هناك مفتاح في الرابط، قم بإنشاء واحد عشوائي وتحويل المستخدم إليه
+        if (!currentKey) {
+            currentKey = 'VIP_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            window.location.search = '?key=' + currentKey;
+            return;
+        }
+
+        // جلب البيانات من الخادم
+        try {
+            const res = await fetch('/api/load?key=' + currentKey);
+            const json = await res.json();
+            
+            document.getElementById('loading-screen').style.display = 'none';
+
+            if (json.status === 'success' && json.data && json.data.state) {
+                rebuildUI(json.data.state);
+            } else {
+                addRoom(); // صفحة فارغة جديدة
+            }
+        } catch (error) {
+            console.error("Error loading data:", error);
+            document.getElementById('loading-screen').style.display = 'none';
+            addRoom();
+        }
+    };
+
+    function triggerAutoSave() {
+        calculateAll();
+        
+        clearTimeout(autoSaveTimeout);
+        document.getElementById('save-status').innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        document.getElementById('save-status').style.color = '#FFB300';
+
+        autoSaveTimeout = setTimeout(async () => {
+            const state = collectState();
+            try {
+                await fetch('/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: currentKey, state: state })
+                });
+                document.getElementById('save-status').innerHTML = '<i class="fas fa-check-circle"></i> تم الحفظ بنجاح';
+                document.getElementById('save-status').style.color = '#10B981';
+            } catch (error) {
+                document.getElementById('save-status').innerHTML = '<i class="fas fa-exclamation-triangle"></i> خطأ في الحفظ';
+                document.getElementById('save-status').style.color = '#EF4444';
+            }
+        }, 1500); // ينتظر ثانية ونصف بعد التوقف عن الكتابة ليرسل البيانات
+    }
+
+    function collectState() {
+        const state = { rooms: [], ceilings: [] };
+        
+        document.querySelectorAll('.room-card').forEach(room => {
+            const roomId = room.id;
+            const name = room.querySelector('.room-name-input').value;
+            
+            const walls = [];
+            room.querySelectorAll('.wall-row').forEach(w => {
+                walls.push({
+                    w: w.querySelector('.wall-width').value,
+                    h: w.querySelector('.wall-height').value
+                });
+            });
+
+            const deductions = [];
+            room.querySelectorAll('.deduction-row').forEach(d => {
+                deductions.push({
+                    type: d.querySelector('select').value,
+                    w: d.querySelector('.deduction-width').value,
+                    h: d.querySelector('.deduction-height').value
+                });
+            });
+
+            state.rooms.push({ id: roomId, name: name, walls: walls, deductions: deductions });
+        });
+
+        document.querySelectorAll('.premium-ceiling-card').forEach(ceil => {
+            const roomId = ceil.id.replace('ceiling-', '');
+            state.ceilings.push({
+                roomId: roomId,
+                l: ceil.querySelector('.ceiling-length').value,
+                w: ceil.querySelector('.ceiling-width').value
+            });
+        });
+
+        return state;
+    }
+
+    function rebuildUI(state) {
+        if (!state.rooms || state.rooms.length === 0) {
+            addRoom();
+            return;
+        }
+
+        state.rooms.forEach(room => {
+            addRoom(room.id, room.name, true);
+            
+            room.walls.forEach(w => {
+                addWall(room.id, w.w, w.h);
+            });
+
+            room.deductions.forEach(d => {
+                addDeduction(room.id, d.type, d.w, d.h);
+            });
+        });
+
+        state.ceilings.forEach(c => {
+            const ceilCard = document.getElementById('ceiling-' + c.roomId);
+            if (ceilCard) {
+                ceilCard.querySelector('.ceiling-length').value = c.l || '';
+                ceilCard.querySelector('.ceiling-width').value = c.w || '';
+            }
+        });
+
+        calculateAll();
+    }
+
+    function addRoom(givenId = null, givenName = null, isRebuilding = false) {
+        roomCounter++;
+        const roomId = givenId || `room-${roomCounter}`;
+        const defaultName = givenName || `مساحة ${roomCounter}`;
+        
+        const roomHTML = `
+            <div class="room-card" id="${roomId}">
+                <div class="room-header">
+                    <div class="room-title-group">
+                        <div class="room-icon"><i class="fas fa-door-open"></i></div>
+                        <input type="text" class="room-name-input" list="roomNames" 
+                               placeholder="اكتب اسم المكان..." value="${defaultName}" 
+                               oninput="updateCeilingName('${roomId}', this.value); triggerAutoSave();">
+                    </div>
+                    <button class="delete-btn" onclick="removeRoom('${roomId}')"><i class="fas fa-trash-alt"></i> إزالة</button>
+                </div>
+
+                <div class="sub-section walls-section">
+                    <div class="section-title walls-header">
+                        <span><i class="fas fa-ruler-combined"></i> قياسات الجدران</span>
+                        <button class="add-pill-btn add-wall-btn" onclick="addWall('${roomId}')"><i class="fas fa-plus"></i> جدار إضافي</button>
+                    </div>
+                    <div id="walls-${roomId}"></div>
+                </div>
+
+                <div class="sub-section deductions-section">
+                    <div class="section-title deductions-header">
+                        <span><i class="fas fa-cut"></i> خصومات (أبواب وشبابيك)</span>
+                        <button class="add-pill-btn add-deduction-btn" onclick="addDeduction('${roomId}')"><i class="fas fa-plus"></i> إضافة خصم</button>
+                    </div>
+                    <div id="deductions-${roomId}"></div>
+                </div>
+
+                <div class="room-summary-box">
+                    <div class="summary-item s-walls">
+                        <span class="s-label">إجمالي الجدران</span>
+                        <span class="s-value"><span class="r-walls-val">0.00</span> م²</span>
+                    </div>
+                    <div class="summary-item s-deductions">
+                        <span class="s-label">إجمالي الخصومات</span>
+                        <span class="s-value"><span class="r-deductions-val">0.00</span> م²</span>
+                    </div>
+                    <div class="summary-item s-net">
+                        <span class="s-label">الصافي للمساحة</span>
+                        <span class="s-value"><span class="r-net-val">0.00</span> م²</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('roomsContainer').insertAdjacentHTML('beforeend', roomHTML);
+        
+        const ceilingHTML = `
+            <div class="premium-ceiling-card" id="ceiling-${roomId}">
+                <div class="c-info-group">
+                    <div class="c-icon"><i class="fas fa-border-all"></i></div>
+                    <div class="c-text-wrapper">
+                        <span class="c-label">سقف مساحة</span>
+                        <span class="c-name-text" id="c-text-${roomId}">${defaultName}</span>
+                    </div>
+                </div>
+
+                <div class="c-inputs-group">
+                    <div class="p-input-wrapper">
+                        <i class="fas fa-arrows-alt-h"></i>
+                        <input type="number" class="ceiling-length" placeholder="الطول" oninput="triggerAutoSave()">
+                    </div>
+                    <div class="p-multiply-icon"><i class="fas fa-times"></i></div>
+                    <div class="p-input-wrapper">
+                        <i class="fas fa-arrows-alt-v"></i>
+                        <input type="number" class="ceiling-width" placeholder="العرض" oninput="triggerAutoSave()">
+                    </div>
+                </div>
+
+                <div class="c-result-box">
+                    <span class="c-result-label">الصافي</span>
+                    <div class="c-result-value"><span class="ceiling-area">0.00</span> <small>م²</small></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('ceilingsWrapper').insertAdjacentHTML('beforeend', ceilingHTML);
+
+        if(!isRebuilding) {
+            addWall(roomId);
+            triggerAutoSave();
+        }
+    }
+
+    function updateCeilingName(roomId, newName) {
+        const textSpan = document.getElementById(`c-text-${roomId}`);
+        if (textSpan) {
+            textSpan.innerText = newName.trim() === "" ? "غير مسماة" : newName;
+        }
+    }
+
+    function addWall(roomId, valW = '', valH = '') {
+        const wallId = `wall-${Math.random().toString(36).substr(2, 9)}`;
+        const list = document.getElementById(`walls-${roomId}`);
+        const html = `
+            <div class="premium-input-row wall-row" id="${wallId}">
+                <div class="p-input-wrapper">
+                    <i class="fas fa-arrows-alt-h" style="color: var(--blue-main)"></i>
+                    <input type="number" class="wall-width" placeholder="العرض (متر)" value="${valW}" oninput="triggerAutoSave()">
+                </div>
+                <div class="p-multiply-icon"><i class="fas fa-times"></i></div>
+                <div class="p-input-wrapper">
+                    <i class="fas fa-arrows-alt-v" style="color: var(--blue-main)"></i>
+                    <input type="number" class="wall-height" placeholder="الارتفاع (متر)" value="${valH}" oninput="triggerAutoSave()">
+                </div>
+                <button class="remove-item-btn" onclick="removeElement('${wallId}')" title="حذف الجدار"><i class="fas fa-times"></i></button>
+            </div>`;
+        list.insertAdjacentHTML('beforeend', html);
+        if(!valW && !valH) triggerAutoSave();
+    }
+
+    function addDeduction(roomId, valType = '🚪 باب', valW = '', valH = '') {
+        const deductionId = `ded-` + Math.random().toString(36).substr(2, 9);
+        const list = document.getElementById(`deductions-${roomId}`);
+        
+        const selBab = valType === '🚪 باب' ? 'selected' : '';
+        const selShbak = valType === '🪟 شباك' ? 'selected' : '';
+        const selAkhar = valType === '◼ فراغ آخر' ? 'selected' : '';
+
+        const html = `
+            <div class="premium-input-row deduction-row" id="${deductionId}">
+                <div class="p-input-wrapper" style="max-width: 140px;">
+                    <i class="fas fa-caret-down" style="color: var(--rose-main)"></i>
+                    <select onchange="triggerAutoSave()">
+                        <option ${selBab}>🚪 باب</option>
+                        <option ${selShbak}>🪟 شباك</option>
+                        <option ${selAkhar}>◼ فراغ آخر</option>
+                    </select>
+                </div>
+                <div class="p-input-wrapper">
+                    <i class="fas fa-arrows-alt-h" style="color: var(--rose-main)"></i>
+                    <input type="number" class="deduction-width" placeholder="العرض (متر)" value="${valW}" oninput="triggerAutoSave()">
+                </div>
+                <div class="p-multiply-icon"><i class="fas fa-times"></i></div>
+                <div class="p-input-wrapper">
+                    <i class="fas fa-arrows-alt-v" style="color: var(--rose-main)"></i>
+                    <input type="number" class="deduction-height" placeholder="الارتفاع (متر)" value="${valH}" oninput="triggerAutoSave()">
+                </div>
+                <button class="remove-item-btn" onclick="removeElement('${deductionId}')" title="حذف الخصم"><i class="fas fa-times"></i></button>
+            </div>`;
+        list.insertAdjacentHTML('beforeend', html);
+        if(!valW && !valH) triggerAutoSave();
+    }
+
+    function removeElement(id) {
+        const el = document.getElementById(id);
+        if(el) { el.remove(); triggerAutoSave(); }
+    }
+
+    function removeRoom(roomId) {
+        removeElement(roomId); 
+        removeElement(`ceiling-${roomId}`); 
+    }
+
+    function calculateAll() {
+        let grandWalls = 0;
+        let grandCeilings = 0;
+
+        const rooms = document.querySelectorAll('.room-card');
+        rooms.forEach(room => {
+            let wArea = 0, dArea = 0;
+            
+            room.querySelectorAll('.wall-row').forEach(row => {
+                wArea += (parseFloat(row.querySelector('.wall-width').value) || 0) * (parseFloat(row.querySelector('.wall-height').value) || 0);
+            });
+            
+            room.querySelectorAll('.deduction-row').forEach(row => {
+                dArea += (parseFloat(row.querySelector('.deduction-width').value) || 0) * (parseFloat(row.querySelector('.deduction-height').value) || 0);
+            });
+            
+            let net = wArea - dArea;
+            if(net < 0) net = 0; 
+            
+            const wLabel = room.querySelector('.r-walls-val');
+            const dLabel = room.querySelector('.r-deductions-val');
+            const nLabel = room.querySelector('.r-net-val');
+            
+            if(wLabel) wLabel.innerText = wArea.toFixed(2);
+            if(dLabel) dLabel.innerText = dArea.toFixed(2);
+            if(nLabel) nLabel.innerText = net.toFixed(2);
+
+            grandWalls += net;
+        });
+
+        const ceilings = document.querySelectorAll('.premium-ceiling-card');
+        ceilings.forEach(row => {
+            const l = parseFloat(row.querySelector('.ceiling-length').value) || 0;
+            const w = parseFloat(row.querySelector('.ceiling-width').value) || 0;
+            const area = l * w;
+            row.querySelector('.ceiling-area').innerText = area.toFixed(2);
+            grandCeilings += area;
+        });
+
+        document.getElementById('grandTotalWalls').innerText = grandWalls.toFixed(2);
+        document.getElementById('grandTotalCeilings').innerText = grandCeilings.toFixed(2);
+    }
+</script>
+
+</body>
+</html>
